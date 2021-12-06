@@ -1,5 +1,8 @@
 import subprocess
 import sys
+import os
+import os.path
+
 
 def print_info(rosbag):
 	cmd = ['time', 'rosbag', 'info', rosbag]
@@ -7,19 +10,62 @@ def print_info(rosbag):
 	o, e = proc.communicate()
 	print('Output: ' + o.decode('ascii'))
 
-def to_pcd(rosbag):
-	cmd = ['rosrun', 'pcl_ros', 'bag_to_pcd', rosbag, '/os1_cloud_node/points', './pointclouds']
+
+def to_pcd(rosbag, topic):
+	cmd = ['rosrun', 'pcl_ros', 'bag_to_pcd', rosbag, topic, './pointclouds']
 	# subprocess.run(cmd, shell=True, check=True)
 	proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 
+def change_images_dir(path):
+
+	command = "mv ~/.ros/frame*.jpg " + path
+	os.system(command)
+
+
+def move_images():
+	cwd = os.path.abspath(os.getcwd())
+	path = os.path.join(cwd, "images")
+	if os.path.exists("images"):
+		change_images_dir(path)
+	else:
+		os.mkdir(path)
+		change_images_dir(path)
+
+
+def get_images(rosbag, topic_img):
+
+	cwd = os.path.abspath(os.getcwd())
+	path = os.path.join(cwd, "export_img.launch ")
+	bagfile = "bagfile:=" + os.path.join(cwd, rosbag)
+	topic = " topic:=" + topic_img
+	command = "roslaunch " + path + bagfile + topic
+	print(command)
+	os.system(command)
+	move_images()
+
 
 if __name__ == "__main__":
-	if len(sys.argv)>=2:
-		rosbag = sys.argv[1]
-	else:
+	if len(sys.argv) == 1:
 		rosbag = "example_synced.bag"
+		topic_pcd = "/os1_cloud_node/points"
+		topic_img = "/pylon_camera_node/image_raw"
+	elif len(sys.argv) == 2:
+		rosbag = sys.argv[1]
+		topic_pcd = "/os1_cloud_node/points"
+		topic_img = "/pylon_camera_node/image_raw"
+	elif len(sys.argv) == 3:
+		rosbag = sys.argv[1]
+		topic_pcd = sys.argv[2]
+		topic_img = "/pylon_camera_node/image_raw"
+	else:
+		rosbag = sys.argv[1]
+		topic_pcd = sys.argv[2]
+		topic_img = sys.argv[3]
+
 	print_info(rosbag)
-	to_pcd(rosbag)
+	to_pcd(rosbag, topic_pcd)
+	get_images(rosbag, topic_img)
 	print("PCD files are in ./pointclouds folder")
+	print("Images saved in ./images folder")
 	
