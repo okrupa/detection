@@ -4,7 +4,9 @@ Kolejne etapy możemy przedstawić jako:
    chmurze. Jeśli wybrane punkty nie definiują w sposób jednoznaczny
    płaszczyzny (tzn. są współliniowe), wybierz inne trzy punkty.
 
-   random_sample -> 3 points (idxs):
+   random_points = random_sample(points, 3)
+        if collinear(random_points):
+            continue
 
 2. Oblicz równanie płaszczyzny pasującej do wybranych punktów, tzn. wyznacz
    współczynniki a, b, c, d występujące w równaniu ax + by + cd + d = 0
@@ -18,9 +20,13 @@ Kolejne etapy możemy przedstawić jako:
 
 
    for i, rp in enumerate(random_points):
-       dist = calculate_distance(rp)
-       if dist < delta_val:
-           np.delete(points, idxs[i], 0)
+       to_delete = []
+        for i, point in enumerate(points):
+            dist = calculate_distance(point, best_eq)
+            if dist < delta_val:
+                to_delete.append(i)
+
+        points = np.delete(points, to_delete, 0)
 
 
 4. Powtórz kroki 1-3. dopóki maksymalna liczba iteracji nie zostanie
