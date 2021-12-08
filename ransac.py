@@ -9,7 +9,6 @@ from sympy import Point
 def random_sample(arr: np.array, size: int = 1) -> np.array:
     return arr[np.random.choice(len(arr), size=size, replace=False)]
 
-
 def calculate_distance(point: np.array, best_eq: list) -> int:
     x, y, z = point
     a, b, c, d = best_eq
@@ -19,7 +18,6 @@ def calculate_distance(point: np.array, best_eq: list) -> int:
     distance = nom / denom
     return distance
 
-
 def collinear(points):
     points_to_check = []
     assert points.ndim > 1, "Multiple points"
@@ -28,14 +26,13 @@ def collinear(points):
         points_to_check.append(Point(x, y, z))
     return Point.is_collinear(points_to_check[0], points_to_check[1], points_to_check[2])
 
-
 def ransac(pcd_file, delta_val=0.01):
     best_inliers = 0
     best_eq = 0
     pcd_load = o3d.io.read_point_cloud(pcd_file)
     points = np.asarray(pcd_load.points)
     plane1 = pyrsc.Plane()
-    min_points = int(len(points) / 3)
+    min_points = int(len(points) / 10) # 3
 
     loop = 0
     while len(points) > min_points:
@@ -61,11 +58,22 @@ def ransac(pcd_file, delta_val=0.01):
         points = np.delete(points, to_delete, 0)
     return points
 
-
 if __name__ == "__main__":
     import sys
     delta = float(sys.argv[1]) if len(sys.argv) > 1 else 0.01
-    points = ransac(pcd_file="example.pcd", delta_val=delta)            # cloud_bin_0
+    points = ransac(pcd_file="1581791679.133504000.pcd", delta_val=delta)            # cloud_bin_0 / example
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(points)
     o3d.io.write_point_cloud("result.pcd", pcd)
+
+    print("Load a ply point cloud, print it, and render it")
+    result_pcd = o3d.io.read_point_cloud("result.pcd")
+    print(result_pcd)
+    print(np.asarray(result_pcd.points))
+
+    original_pcd = o3d.io.read_point_cloud("1581791679.133504000.pcd")
+    print(original_pcd)
+    print(np.asarray(original_pcd.points))
+
+    o3d.visualization.draw_geometries([original_pcd])
+    o3d.visualization.draw_geometries([result_pcd])
