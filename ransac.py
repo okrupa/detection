@@ -4,7 +4,7 @@ import open3d as o3d
 import math
 
 from sympy import Point
-
+import visualize_pcd
 
 def random_sample(arr: np.array, size: int = 1) -> np.array:
     return arr[np.random.choice(len(arr), size=size, replace=False)]
@@ -66,14 +66,6 @@ if __name__ == "__main__":
     pcd.points = o3d.utility.Vector3dVector(points)
     o3d.io.write_point_cloud("result.pcd", pcd)
 
-    print("Load a ply point cloud, print it, and render it")
-    result_pcd = o3d.io.read_point_cloud("result.pcd")
-    print(result_pcd)
-    print(np.asarray(result_pcd.points))
 
-    original_pcd = o3d.io.read_point_cloud("1581791679.133504000.pcd")
-    print(original_pcd)
-    print(np.asarray(original_pcd.points))
-
-    o3d.visualization.draw_geometries([original_pcd])
-    o3d.visualization.draw_geometries([result_pcd])
+    visualize_pcd.show_pcd("1581791679.133504000.pcd")
+    visualize_pcd.show_pcd("result.pcd")
