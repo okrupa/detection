@@ -5,6 +5,8 @@ import pyransac3d as pyrsc
 import open3d as o3d
 import visualize_pcd
 import os
+from tkinter import Tk
+from tkinter.filedialog import askopenfilename
 
 def clearConsole():
     command = 'clear'
@@ -60,16 +62,25 @@ def ransac_algorithim(points):
     return points
 
 def unpack_rosbag():
-    return "Unpack rosbag not implemented yet"
+    print("Unpack rosbag not implemented yet")
 
 def visualize_file():
-    return "Visualize pcd file not implemented yet"
+    Tk().withdraw()
+    file = askopenfilename()
+    visualize_pcd.show_pcd(file)
 
 def detect():
-    return "Detection not implemented yet"
+    Tk().withdraw()
+    file = askopenfilename()
+    pcd_load = o3d.io.read_point_cloud(file)
+    points_bef = np.asarray(pcd_load.points)
+    points_after = ransac_algorithim(points_bef)
+    pcd = o3d.geometry.PointCloud()
+    pcd.points = o3d.utility.Vector3dVector(points_after)
+    o3d.io.write_point_cloud("result_points.pcd", pcd)
 
 def visualize_obstacle():
-    return "Visualize obstacle not implemented yet"
+    print("Visualize obstacle not implemented yet")
 
 def number_to_func(argument):
     try:
@@ -84,7 +95,7 @@ def number_to_func(argument):
         4: visualize_obstacle
     }
     func = switcher.get(argument, lambda: "Invalid number")
-    print(func())
+    func()
 
 def program_menu():
     clearConsole()
@@ -104,11 +115,3 @@ def program_menu():
            
 if __name__ == "__main__":
     program_menu()
-    # pcd_load = o3d.io.read_point_cloud("1581791679.133504000.pcd")
-    # points_bef = np.asarray(pcd_load.points)
-    # points_after = ransac_algorithim(points_bef)
-    # pcd = o3d.geometry.PointCloud()
-    # pcd.points = o3d.utility.Vector3dVector(points_after)
-
-    # visualize_pcd.show_pcd("1581791679.133504000.pcd")
-    # visualize_pcd.show_pcd("result_points.pcd")
