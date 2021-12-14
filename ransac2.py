@@ -4,7 +4,13 @@ from sympy import Point
 import pyransac3d as pyrsc
 import open3d as o3d
 import visualize_pcd
+import os
 
+def clearConsole():
+    command = 'clear'
+    if os.name in ('nt', 'dos'):
+        command = 'cls'
+    os.system(command)
 
 def if_collinear(points):
     '''
@@ -53,14 +59,56 @@ def ransac_algorithim(points):
         points = np.delete(points, points_to_del, 0)
     return points
 
+def unpack_rosbag():
+    return "Unpack rosbag not implemented yet"
+
+def visualize_file():
+    return "Visualize pcd file not implemented yet"
+
+def detect():
+    return "Detection not implemented yet"
+
+def visualize_obstacle():
+    return "Visualize obstacle not implemented yet"
+
+def number_to_func(argument):
+    try:
+        argument = int(argument)
+    except ValueError:
+        print("Invalid input. Input should be a number.")
+        return
+    switcher = {
+        1: unpack_rosbag,
+        2: visualize_file,
+        3: detect,
+        4: visualize_obstacle
+    }
+    func = switcher.get(argument, lambda: "Invalid number")
+    print(func())
+
+def program_menu():
+    clearConsole()
+    while True:
+        print("Menu")
+        print("1. Unpack rosbag")
+        print("2. Visualize pcd file")
+        print("3. Detect obstacle")
+        print("4. Visualize obstacle on image")
+        print("5. Exit")
+        number = input("Choose what would you like to do (1-5): ")
+        print(f"You chose number {number}")
+        if number == "5":
+            quit()
+        number_to_func(number)
+
+           
 if __name__ == "__main__":
-    pcd_load = o3d.io.read_point_cloud("1581791679.133504000.pcd")
-    points_bef = np.asarray(pcd_load.points)
-    points_after = ransac_algorithim(points_bef)
-    pcd = o3d.geometry.PointCloud()
-    pcd.points = o3d.utility.Vector3dVector(points_after)
-    o3d.io.write_point_cloud("result_points.pcd", pcd)
+    program_menu()
+    # pcd_load = o3d.io.read_point_cloud("1581791679.133504000.pcd")
+    # points_bef = np.asarray(pcd_load.points)
+    # points_after = ransac_algorithim(points_bef)
+    # pcd = o3d.geometry.PointCloud()
+    # pcd.points = o3d.utility.Vector3dVector(points_after)
 
-
-    visualize_pcd.show_pcd("1581791679.133504000.pcd")
-    visualize_pcd.show_pcd("result_points.pcd")
+    # visualize_pcd.show_pcd("1581791679.133504000.pcd")
+    # visualize_pcd.show_pcd("result_points.pcd")

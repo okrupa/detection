@@ -8,5 +8,6 @@ def show_pcd(pcd_file):
     pcd = o3d.io.read_point_cloud(pcd_file)
     print(pcd)
     print(np.asarray(pcd.points))
+    #pcd.colors = o3d.Vector3dVector([1,1,1])
     o3d.visualization.draw_geometries([pcd])
     return True
