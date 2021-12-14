@@ -1,0 +1,40 @@
+Kolejne etapy możemy przedstawić jako:
+
+1. Wybierz w sposób losowy trzy punkty spośród punktów zawartych w
+   chmurze. Jeśli wybrane punkty nie definiują w sposób jednoznaczny
+   płaszczyzny (tzn. są współliniowe), wybierz inne trzy punkty.
+
+   random_points = random_sample(points, 3)
+        if collinear(random_points):
+            continue
+
+2. Oblicz równanie płaszczyzny pasującej do wybranych punktów, tzn. wyznacz
+   współczynniki a, b, c, d występujące w równaniu ax + by + cd + d = 0
+
+   # ---------  random_points
+   (a, b, c, d), (best_inliers) = plane1.fit([[x,y,z], [x,y,z], [x,y,z]]
+
+3. Policz liczbę punktów (ALL points) pasujących do znalezionego modelu (a, b, c, d).
+   Punkt jest uznawany za pasujący (ang. inlier), jeśli jego odległość od płaszczyzny nie
+   przekracza określonej wcześniej wartości tolerancji δ.
+
+
+   for i, rp in enumerate(random_points):
+       to_delete = []
+        for i, point in enumerate(points):
+            dist = calculate_distance(point, best_eq)
+            if dist < delta_val:
+                to_delete.append(i)
+
+        points = np.delete(points, to_delete, 0)
+
+
+4. Powtórz kroki 1-3. dopóki maksymalna liczba iteracji nie zostanie
+   osiągnięta i zwróć [model z największą liczbą pasujących punktów] = best_inliers.
+
+W ten sposób wykryta zostanie pierwsza płaszczyzna. W celu wykrycia
+kolejnych, należy usunąć z danych wejściowych punkty, które zostały już
+dopasowane, a następnie powtórzyć algorytm. Procedurę tę należy powtarzać
+dopóki liczba punktów znajdujących się w chmurze pozwala na sensowne
+przeszukiwanie (ja przyjąłem tę minimalną liczbę jako 30% wartości
+początkowej).
