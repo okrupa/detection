@@ -29,7 +29,7 @@ def detect():
     points_after = ransac_algorithim(points_bef)
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(points_after)
-    o3d.io.write_point_cloud("result_points.pcd", pcd)
+    o3d.io.write_point_cloud("pcd_files/result_points.pcd", pcd)
 
 def visualize_obstacle():
     print("Visualize obstacle not implemented yet")
