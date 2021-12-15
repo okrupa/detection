@@ -18,23 +18,28 @@ def unpack_rosbag():
     print("Unpack rosbag not implemented yet")
     Tk().withdraw()
     file = askopenfilename()
-    print(file)
-    get_data.get_data_from_rosbag(file)
+    
+    if  len(file) != 0:
+    	get_data.get_data_from_rosbag(file)
 
 def visualize_file():
     Tk().withdraw()
     file = askopenfilename()
-    visualize_pcd.show_pcd(file)
+
+    if  len(file) != 0:
+    	visualize_pcd.show_pcd(file)
 
 def detect():
     Tk().withdraw()
     file = askopenfilename()
-    pcd_load = o3d.io.read_point_cloud(file)
-    points_bef = np.asarray(pcd_load.points)
-    points_after = ransac_algorithim(points_bef)
-    pcd = o3d.geometry.PointCloud()
-    pcd.points = o3d.utility.Vector3dVector(points_after)
-    o3d.io.write_point_cloud("pcd_files/result_points.pcd", pcd)
+    if  len(file) != 0:
+    	
+	pcd_load = o3d.io.read_point_cloud(file)
+	points_bef = np.asarray(pcd_load.points)
+	points_after = ransac_algorithim(points_bef)
+	pcd = o3d.geometry.PointCloud()
+	pcd.points = o3d.utility.Vector3dVector(points_after)
+	o3d.io.write_point_cloud("pcd_files/result_points.pcd", pcd)
 
 def visualize_obstacle():
     print("Visualize obstacle not implemented yet")
