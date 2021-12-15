@@ -1,4 +1,5 @@
 import visualize_pcd
+import get_data
 from ransac2 import ransac_algorithim
 import numpy as np
 import open3d as o3d
@@ -15,6 +16,10 @@ def clearConsole():
 
 def unpack_rosbag():
     print("Unpack rosbag not implemented yet")
+    Tk().withdraw()
+    file = askopenfilename()
+    print(file)
+    get_data.get_data_from_rosbag(file)
 
 def visualize_file():
     Tk().withdraw()
