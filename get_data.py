@@ -2,6 +2,7 @@ import subprocess
 import sys
 import os
 import os.path
+from delete_files import delete_files_in_directory
 
 
 def print_info(rosbag):
@@ -17,35 +18,32 @@ def to_pcd(rosbag, topic):
 	proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	print("PCD files are in ./pointclouds folder")
 
-def change_images_dir(path):
-
-	command = "mv ~/.ros/frame*.jpg " + path
-	os.system(command)
-
-
-def move_images():
-	cwd = os.path.abspath(os.getcwd())
-	path = os.path.join(cwd, "images")
-	if os.path.exists("images"):
-		change_images_dir(path)
-	else:
-		os.mkdir(path)
-		change_images_dir(path)
-	print("Images saved in ./images folder")
 
 def get_images(rosbag, topic_img):
-
 	cwd = os.path.abspath(os.getcwd())
-	path = os.path.join(cwd, "export_img.launch ")
-	bagfile = "bagfile:=" + os.path.join(cwd, rosbag)
-	topic = " topic:=" + topic_img
-	command = "roslaunch " + path + bagfile + topic
+	path_img = os.path.join(cwd, "images")
+
+	folder = "images"
+	if os.path.exists(folder):
+		delete_files_in_directory(folder)
+	else:
+		os.mkdir(folder)
+
+	bagfile = os.path.join(cwd, rosbag)
+	topic = topic_img
+	s = " "
+	command = "python bag_to_images.py " + bagfile + s + path_img + s + topic
 	print(command)
 	os.system(command)
-	move_images()
+
+	print("Images saved in ./images folder")
+
 
 def get_data_from_rosbag(rosbag, topic_pcd = "/os1_cloud_node/points",topic_img = "/pylon_camera_node/image_raw"):
 	print_info(rosbag)
+	folder = "pointclouds"
+	if os.path.exists(folder):
+		delete_files_in_directory(folder)
 	to_pcd(rosbag, topic_pcd)
 	get_images(rosbag, topic_img)
 	
@@ -67,7 +65,7 @@ if __name__ == "__main__":
 		topic_pcd = sys.argv[2]
 		topic_img = sys.argv[3]
 	
-	get_data(rosbag,topic_pcd, topic_img)
+	get_data_from_rosbag(rosbag,topic_pcd, topic_img)
 
 	
 	
