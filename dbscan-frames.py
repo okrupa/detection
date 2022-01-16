@@ -50,7 +50,7 @@ class SelectingObjectsInFrames:
 
 
 if __name__ == "__main__":
-    infile = "1581791723.233274624.pcd"                  # point cloud file before dbscan
+    infile = "1581791723.233274624-result.pcd"                  # point cloud file before dbscan
     eps = 0.4
     min_points = 40
 
