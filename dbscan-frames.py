@@ -4,7 +4,7 @@ import open3d as o3d
 
 class ObjectDetection:
 
-    def __init__(self, infile=None, eps=0.4, min_points=40):
+    def __init__(self, infile=None, eps=0.4, min_points=400):
         self.infile = infile
         self.pcd = None
         self.eps = eps
@@ -19,7 +19,6 @@ class ObjectDetection:
         self.pcd = o3d.io.read_point_cloud(self.infile)
         with o3d.utility.VerbosityContextManager(o3d.utility.VerbosityLevel.Debug) as cm:
             labels = np.array(self.pcd.cluster_dbscan(eps=self.eps, min_points=self.min_points, print_progress=True))
-            # cprint(f"Labels: {colored(labels, 'green', attrs=['bold'])}")
             self.unique_labels = np.unique(np.array(labels))
             for unique in self.unique_labels:
                 self.labeled_points[unique] = []
