@@ -3,6 +3,8 @@ import numpy as np
 import sys
 import time
 
+import copy
+
 from cv2 import destroyWindow
 from open3d import visualization
 import threading
@@ -111,3 +113,18 @@ def show(pcd_files):
     # #     vis.poll_events()
     # #     vis.update_renderer()
     # #     time.sleep(2)
+
+def show_pcd_1_test(pcd_file, window_name="MainWindow"):
+
+    vis = o3d.visualization.Visualizer()
+    vis.create_window()
+    pcd = o3d.io.read_point_cloud(pcd_file[0])
+    mesh_r = copy.deepcopy(pcd)
+    mesh_r.rotate(pcd.get_rotation_matrix_from_xyz((np.pi/ 1.9, np.pi , np.pi /4.5)),
+                  center=(0, 0, 0))
+    vis.add_geometry(mesh_r)
+    ctr = vis.get_view_control()
+    ctr.change_field_of_view(step=50)
+    print("Field of view (before changing) %.2f" % ctr.get_field_of_view())
+    vis.run()
+    vis.destroy_window()

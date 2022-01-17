@@ -49,3 +49,15 @@ def ransac_algorithim(points):
                     points_to_del.append(i)
         points = np.delete(points, points_to_del, 0)
     return points
+
+
+def delete_algorithim(points):
+
+    points_to_del = []
+    for i, coord in enumerate(points):
+        if coord[1] > 0:
+             points_to_del.append(i)
+        if coord[0] > 0:
+             points_to_del.append(i)
+    points = np.delete(points, points_to_del, 0)
+    return points
