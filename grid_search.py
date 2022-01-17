@@ -6,21 +6,18 @@ from detection import ObjectDetection, SelectingObjectsInFrames
 '''
 Results: (not cut)
 - e=0.2, min_points=35 -> 47 
-- e=0.2, min_points=40 -> 39 (chosen params)
+- e=0.2, min_points=40 -> 39
 - e=0.21, min_points=40 -> 34 
 
 (cut):
 - e=0.2, min_points=20 -> 23
 - e=0.2, min_points=15 -> 41 
 - e=0.21, min_points=25 -> 23
-- e=0.21, min_points=15 -> 42 .
-
-
-
+- e=0.21, min_points=15 -> 42 (chosen)
 '''
 
 if __name__ == "__main__":
-                                                    
+                                          
     eps = [0.2, 0.21, 0.22, 0.23]
     min_points = [40, 35, 30, 25, 20, 15] 
 

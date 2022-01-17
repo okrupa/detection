@@ -142,7 +142,9 @@ def get_first_message():
             os.mkdir(folder)
 
         for i in ransac_output:
+            # TODO: switch to dbscan from detection.py
             dbscan.do_dbscan(i)
+
 
         cwd = os.path.abspath(os.getcwd())
         path_pcd = os.path.join(cwd, "results")
