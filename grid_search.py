@@ -1,22 +1,23 @@
-import visualize_pcd
 import open3d as o3d
-import visualize_pcd
 
-from ransac2 import ransac_algorithim
+import visualize_pcd
 from detection import ObjectDetection, SelectingObjectsInFrames
 
+'''
+Results: (not cut)
+- e=0.2, min_points=35 -> 47 
+- e=0.2, min_points=40 -> 39 (chosen params)
+- e=0.21, min_points=40 -> 34 
+
+(cut):
+- e=0.2, min_points=20 -> 23
+- e=0.2, min_points=15 -> 41 
+- e=0.21, min_points=25 -> 23
+- e=0.21, min_points=15 -> 42 .
+
+
 
 '''
-Epsilon:
-- [0.27, 0.28, 0.29, 0.30], min_points=40 - wykryte ponad 40 obiektów, ale brak wykrytego murka
-- [0.4, 0.6, 0.8, 1.0], min_points=40 - zbyt duże wartości epsilona
-- [0.001, 0.005, 0.01, 0.05, 0.1], min_points=40 - zbyt małe wartości epsilona
-
-
-Min_points:
-- [100, 200, 400, 800, 1000] - zbyt duże wartości => mało wykrytych obiektów
-'''
-
 
 if __name__ == "__main__":
                                                     
@@ -25,9 +26,8 @@ if __name__ == "__main__":
 
     for e in eps:
         for min_point in min_points:
-
-            infile = "1581791678.433744128-trimmed-result.pcd"
-
+            #infile = "1581791678.433744128_trimmed_result.pcd"
+            infile = "1581791678.433744128-ransac.pcd"
             od = ObjectDetection(infile, e, min_point)
             print("EPSILON: ", e, "\nMIN_POINTS: ", min_point)
 
@@ -35,18 +35,9 @@ if __name__ == "__main__":
             soif = SelectingObjectsInFrames(pcd, labeled_points, unique_labels)
             pcd_framed = soif.select_objects_in_frames()
 
-            o3d.io.write_point_cloud('1581791678.433744128-trimmed-result' + str(e) + '_' + str(min_point) + '.pcd', pcd)
-            visualize_pcd.show_pcd('1581791678.433744128-trimmed-result' + str(e) + '_' + str(min_point) + '.pcd')
+            o3d.io.write_point_cloud('1581791678.433744128_ransac' + str(e) + '_' + str(min_point) + '.pcd', pcd)
+            visualize_pcd.show_pcd('1581791678.433744128_ransac' + str(e) + '_' + str(min_point) + '.pcd')
 
-
-    """pcd_load = o3d.io.read_point_cloud("1581791678.433744128.pcd")
-            points_bef = np.asarray(pcd_load.points)
-            start = time.monotonic()
-            points_after = ransac_algorithim(points_bef)
-            end = time.monotonic()
-            print(start)
-            pcd = o3d.geometry.PointCloud()
-            pcd.points = o3d.utility.Vector3dVector(points_after)"""
 
 
 

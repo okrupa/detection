@@ -1,4 +1,2 @@
 /__pycache__
-/generate_pcd_targets
-grid_search_results
-extra.py
+/pcds_after_detection

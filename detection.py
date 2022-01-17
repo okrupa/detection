@@ -4,11 +4,16 @@ import open3d as o3d
 
 class ObjectDetection:
 
-    def __init__(self, infile=None, eps=0.4, min_points=200):
+    def __init__(self, infile=None, eps=0.2, min_points=40):
+        '''
+        eps=0.2
+        min_points=40 
+        Parameters chosen after grid search
+        '''
         self.infile = infile
         self.pcd = None
         self.eps = eps
-        self.min_points = min_points            # 60
+        self.min_points = min_points            
         self.unique_labels = None
         self.labeled_points = {}
 
@@ -50,12 +55,10 @@ class SelectingObjectsInFrames:
 
 
 if __name__ == "__main__":
-    #infile = "1581791723.233274624-result.pcd"                  # point cloud file before dbscan
-    infile = "1581791678.433744128-result.pcd"
-    eps = 0.4
-    min_points = 40
 
-    od = ObjectDetection(infile, eps, min_points)
+    # object detection on pcd (after trimming, ransac)
+    infile = "1581791678.433744128-ransac.pcd"
+    od = ObjectDetection(infile, eps=0.21, min_points=15)
     pcd, labeled_points, unique_labels = od.do_dbscan()
     soif = SelectingObjectsInFrames(pcd, labeled_points, unique_labels)
     pcd_framed = soif.select_objects_in_frames()

@@ -1,18 +1,19 @@
+import os
+import glob
+import numpy as np
+import open3d as o3d
+from tkinter import Tk
+from tkinter.filedialog import askopenfilename
+
 from cv2 import destroyWindow
 import subprocess
-
+import cloud_trimming
 import visualize_pcd
 import get_data
 import choose_pcd
 import dbscan
 from delete_files import delete_files_in_directory
 from ransac2 import ransac_algorithim
-import numpy as np
-import open3d as o3d
-import os
-import glob
-from tkinter import Tk
-from tkinter.filedialog import askopenfilename
 
 
 def clearConsole():
@@ -49,7 +50,10 @@ def detect():
     if len(file) != 0:
         pcd_load = o3d.io.read_point_cloud(file)
         points_bef = np.asarray(pcd_load.points)
-        points_after = ransac_algorithim(points_bef)
+        # TODO: 
+        # trimming distant points (from the center)
+        #points_after_trimming = cloud_trimming.trim_far_points(points_bef, 11) 
+        points_after = ransac_algorithim(points_bef)    # => points_after = ransac_algorithim(points_after_trimming)
         pcd = o3d.geometry.PointCloud()
         pcd.points = o3d.utility.Vector3dVector(points_after)
         file_s = file.split("/")

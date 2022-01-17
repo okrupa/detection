@@ -3,6 +3,10 @@ import numpy as np
 from sympy import Point
 import pyransac3d as pyrsc
 
+import open3d as o3d
+from cloud_trimming import trim_far_points
+import visualize_pcd 
+
 def if_collinear(points):
     '''
     Czy punkty definiują płaszczyznę
@@ -34,7 +38,7 @@ def ransac_algorithim(points):
         Oblicz równanie płaszczyzny pasującej do wybranych punktów, tzn. wyznacz
         współczynniki a, b, c, d występujące w równaniu ax + by + cd + d = 0. 
         '''
-        plane_abcd, inliers = plane.fit(chosen_points, thresh = 0.01, maxIteration = 100)
+        plane_abcd, _ = plane.fit(chosen_points, thresh = 0.01, maxIteration = 100)
         if plane_abcd:
             a, b, c, d = plane_abcd
             points_to_del = []
@@ -50,23 +54,9 @@ def ransac_algorithim(points):
         points = np.delete(points, points_to_del, 0)
     return points
 
-<<<<<<< HEAD
-if __name__ == "__main__":
-    pcd_load = o3d.io.read_point_cloud("1581791678.433744128.pcd")
-    points_bef = np.asarray(pcd_load.points)
-    points_after = ransac_algorithim(points_bef)
-    pcd = o3d.geometry.PointCloud()
-    pcd.points = o3d.utility.Vector3dVector(points_after)
-    o3d.io.write_point_cloud("1581791678.433744128-result.pcd", pcd)
-=======
->>>>>>> cmd-program-read-rosbagfile
 
-def delete_algorithim(points):
+def delete_algorithim(points):  # TODO: check if used anywhere
 
-<<<<<<< HEAD
-    visualize_pcd.show_pcd("1581791678.433744128.pcd")
-    visualize_pcd.show_pcd("1581791678.433744128-result.pcd")
-=======
     points_to_del = []
     for i, coord in enumerate(points):
         if coord[1] > 0:
@@ -75,4 +65,24 @@ def delete_algorithim(points):
              points_to_del.append(i)
     points = np.delete(points, points_to_del, 0)
     return points
->>>>>>> cmd-program-read-rosbagfile
+
+
+if __name__ == "__main__":
+    # reading pcd file
+    pcd_load = o3d.io.read_point_cloud("1581791678.433744128.pcd")
+    points_bef = np.asarray(pcd_load.points)
+
+    # trimming distant points (from the center)
+    points_after_trimming = trim_far_points(points_bef, 11) 
+
+    # running ransac
+    points_after = ransac_algorithim(points_after_trimming)
+
+    # saving pcd after ransac to file
+    pcd = o3d.geometry.PointCloud()
+    pcd.points = o3d.utility.Vector3dVector(points_after)
+    o3d.io.write_point_cloud("1581791678.433744128_trimmed_result.pcd", pcd)
+
+    # visualize pcd before and after ransac
+    visualize_pcd.show_pcd("1581791678.433744128.pcd")
+    visualize_pcd.show_pcd("1581791678.433744128_trimmed_result.pcd")
