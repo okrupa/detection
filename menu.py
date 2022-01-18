@@ -1,6 +1,4 @@
 from cv2 import destroyWindow
-import subprocess
-
 import visualize_pcd
 import get_data
 import choose_pcd
@@ -63,15 +61,12 @@ def detect():
         points_after = ransac_algorithim(points_bef)
         pcd = o3d.geometry.PointCloud()
         pcd.points = o3d.utility.Vector3dVector(points_after)
-        file_s = file.split("/")
-        f = file_s[-1]
-        path = CONST_DIR + os.sep + "pcd_files" + os.sep + f[:-4] + "-ransac.pcd"
-        print(path)
+        path = CONST_DIR + os.sep + "pcd_files"
         if not os.path.isdir(path):
             os.mkdir(path)
         o3d.io.write_point_cloud(path, pcd)
 
-        folder = CONST_DIR + os.sep +"results"
+        folder = CONST_DIR + os.sep + "results"
         if not os.path.exists(folder):
             os.mkdir(folder)
         dbscan.do_dbscan(path)
@@ -82,7 +77,7 @@ def detect():
 
 
 def detect_list(files):
-    folder = "ransac_files"
+    folder = CONST_DIR + os.sep + "ransac_files"
     if os.path.exists(folder):
         delete_files_in_directory(folder)
     else:
@@ -94,11 +89,8 @@ def detect_list(files):
         points_after = ransac_algorithim(points_bef)
         pcd = o3d.geometry.PointCloud()
         pcd.points = o3d.utility.Vector3dVector(points_after)
-        answer = input("Would you like to save this file? (y/n): ")
-        if answer == 'y':
-            filename = save_file(pcd)
-    cwd = os.path.abspath(os.getcwd())
-    path_pcd = os.path.join(cwd, folder)
+        o3d.io.write_point_cloud(folder, pcd)
+    path_pcd = CONST_DIR + os.sep +"results"
     p_pcd = path_pcd + "/*.pcd"
     pcd = [f for f in glob.glob(p_pcd)]
     pcd.sort()
@@ -117,7 +109,7 @@ def run_algorithm():
         ransac_output = detect_list(output)
         print("Get results")
 
-        folder = "results"
+        folder = CONST_DIR + os.sep +"results"
         if os.path.exists(folder):
             delete_files_in_directory(folder)
         else:
@@ -127,7 +119,7 @@ def run_algorithm():
             dbscan.do_dbscan(i)
 
         cwd = os.path.abspath(os.getcwd())
-        path_pcd = os.path.join(cwd, "results")
+        path_pcd = CONST_DIR + os.sep + "results"
         p_pcd = path_pcd + "/*.pcd"
         pcd = [f for f in glob.glob(p_pcd)]
         pcd.sort()
@@ -147,7 +139,7 @@ def get_first_message():
         ransac_output = detect_list(output)
         print("Get results")
 
-        folder = "results"
+        folder = CONST_DIR + os.sep + "results"
         if os.path.exists(folder):
             delete_files_in_directory(folder)
         else:
@@ -157,7 +149,7 @@ def get_first_message():
             dbscan.do_dbscan(i)
 
         cwd = os.path.abspath(os.getcwd())
-        path_pcd = os.path.join(cwd, "results")
+        path_pcd = CONST_DIR + os.sep + "results"
         p_pcd = path_pcd + "/*.pcd"
         pcd = [f for f in glob.glob(p_pcd)]
         pcd.sort()
