@@ -5,15 +5,12 @@ import time
 
 import copy
 
-<<<<<<< HEAD
-=======
 from cv2 import destroyWindow
 from open3d import visualization
 import threading
 def start_thread(func, name=None, args = []):
     threading.Thread(target=func, name=name, args=args).start()
 
->>>>>>> cmd-program-read-rosbagfile
 def show_pcd(pcd_file):
     print("Load a ply point clouds, print them, and render them")
     pcd = o3d.io.read_point_cloud(pcd_file)
