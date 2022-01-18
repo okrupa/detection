@@ -1,6 +1,4 @@
 from cv2 import destroyWindow
-import subprocess
-
 import visualize_pcd
 import get_data
 import choose_pcd
@@ -12,8 +10,9 @@ import open3d as o3d
 import os
 import glob
 from tkinter import Tk
-from tkinter.filedialog import askopenfilename
+from tkinter.filedialog import askopenfilename, askdirectory
 
+CONST_DIR = os.getcwd() + os.sep + "results"
 
 def clearConsole():
     command = 'clear'
@@ -21,6 +20,18 @@ def clearConsole():
         command = 'cls'
     os.system(command)
 
+def save_file(pcd):
+    root = Tk()
+    root.withdraw()
+    dir = askdirectory(title='Choose a directory')
+    root.destroy()
+    filename = input("Enter file name: ")
+    last_chars = filename[-4:]
+    if last_chars != '.pcd':
+        filename = filename + '.pcd'
+    filename = dir + '/' + filename
+    o3d.io.write_point_cloud(filename, pcd)
+    return filename
 
 def unpack_rosbag():
     root = Tk()
@@ -32,41 +43,41 @@ def unpack_rosbag():
         get_data.get_data_from_rosbag(file)
 
 def visualize_file():
-
     root = Tk()
     root.withdraw()
     file = askopenfilename()
     root.destroy()
     visualize_pcd.show_pcd_1([file])
 
-
 def detect():
-    # root = Tk()
-    # root.withdraw()
-    # file = askopenfilename(title='Choose a file')
-    # root.destroy()
-    file = "/home/kolga/Desktop/testpzsp2/pzsp2/pcd_files/1581791678.433744128.pcd"
+    root = Tk()
+    root.withdraw()
+    file = askopenfilename(title='Choose a file')
+    root.destroy()
+    # file = "/home/kolga/Desktop/testpzsp2/pzsp2/pcd_files/1581791678.433744128.pcd"
     if len(file) != 0:
         pcd_load = o3d.io.read_point_cloud(file)
         points_bef = np.asarray(pcd_load.points)
         points_after = ransac_algorithim(points_bef)
         pcd = o3d.geometry.PointCloud()
         pcd.points = o3d.utility.Vector3dVector(points_after)
-        file_s = file.split("/")
-        f = file_s[-1]
-        filename = "pcd_files/" + f[:-4] + "-ransac.pcd"
-        o3d.io.write_point_cloud(filename, pcd)
-        folder = "results"
+        path = CONST_DIR + os.sep + "pcd_files"
+        if not os.path.isdir(path):
+            os.mkdir(path)
+        o3d.io.write_point_cloud(path, pcd)
+
+        folder = CONST_DIR + os.sep + "results"
         if not os.path.exists(folder):
             os.mkdir(folder)
-
-        dbscan.do_dbscan(os.getcwd() + "/"+filename)
-        file_dbscan = os.path.abspath(os.getcwd()+"/results/" + f[:-4] + "-ransac-result.pcd")
+        dbscan.do_dbscan(path)
+        file_s = file.split("/")
+        f = file_s[-1]
+        file_dbscan = os.path.abspath(folder + os.sep + f[:-4] + "-ransac-result.pcd")
         visualize_pcd.show_pcd_1([file_dbscan])
 
 
 def detect_list(files):
-    folder = "ransac_files"
+    folder = CONST_DIR + os.sep + "ransac_files"
     if os.path.exists(folder):
         delete_files_in_directory(folder)
     else:
@@ -78,9 +89,8 @@ def detect_list(files):
         points_after = ransac_algorithim(points_bef)
         pcd = o3d.geometry.PointCloud()
         pcd.points = o3d.utility.Vector3dVector(points_after)
-        o3d.io.write_point_cloud(f"ransac_files/points{i}.pcd", pcd)
-    cwd = os.path.abspath(os.getcwd())
-    path_pcd = os.path.join(cwd, folder)
+        o3d.io.write_point_cloud(folder, pcd)
+    path_pcd = CONST_DIR + os.sep +"results"
     p_pcd = path_pcd + "/*.pcd"
     pcd = [f for f in glob.glob(p_pcd)]
     pcd.sort()
@@ -94,14 +104,12 @@ def visualize_obstacle():
 def run_algorithm():
     unpack_rosbag()
     output = choose_pcd.get_sequence(150)
-
     if output is not None:
-
         print("Run ransac")
         ransac_output = detect_list(output)
         print("Get results")
 
-        folder = "results"
+        folder = CONST_DIR + os.sep +"results"
         if os.path.exists(folder):
             delete_files_in_directory(folder)
         else:
@@ -111,7 +119,7 @@ def run_algorithm():
             dbscan.do_dbscan(i)
 
         cwd = os.path.abspath(os.getcwd())
-        path_pcd = os.path.join(cwd, "results")
+        path_pcd = CONST_DIR + os.sep + "results"
         p_pcd = path_pcd + "/*.pcd"
         pcd = [f for f in glob.glob(p_pcd)]
         pcd.sort()
@@ -131,7 +139,7 @@ def get_first_message():
         ransac_output = detect_list(output)
         print("Get results")
 
-        folder = "results"
+        folder = CONST_DIR + os.sep + "results"
         if os.path.exists(folder):
             delete_files_in_directory(folder)
         else:
@@ -141,7 +149,7 @@ def get_first_message():
             dbscan.do_dbscan(i)
 
         cwd = os.path.abspath(os.getcwd())
-        path_pcd = os.path.join(cwd, "results")
+        path_pcd = CONST_DIR + os.sep + "results"
         p_pcd = path_pcd + "/*.pcd"
         pcd = [f for f in glob.glob(p_pcd)]
         pcd.sort()
@@ -189,4 +197,16 @@ def program_menu():
 
            
 if __name__ == "__main__":
+    print(f'The default folder for saving files is currently: {CONST_DIR}')
+    answer = input("Would you like to change it? (y/n) ")
+    if answer == 'y':
+        root = Tk()
+        root.withdraw()
+        CONST_DIR = askdirectory(title='Choose a directory')
+        root.destroy()
+    else:
+        if not os.path.isdir(CONST_DIR):
+            os.mkdir(CONST_DIR)
+        # else:
+        #     delete_files_in_directory(CONST_DIR)
     program_menu()
