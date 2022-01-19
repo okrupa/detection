@@ -8,7 +8,7 @@ class ObjectDetection:
         self.infile = infile
         self.pcd = None
         self.eps = eps
-        self.min_points = min_points            # 60
+        self.min_points = min_points
         self.unique_labels = None
         self.labeled_points = {}
 
@@ -52,7 +52,6 @@ class SelectingObjectsInFrames:
 
 
 if __name__ == "__main__":
-    #infile = "1581791723.233274624-result.pcd"                  # point cloud file before dbscan
     infile = "1581791678.433744128-result.pcd"
     eps = 0.4
     min_points = 40
