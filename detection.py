@@ -39,14 +39,16 @@ class SelectingObjectsInFrames:
 
     def select_objects_in_frames(self):
         obb = []
+        obb_coords = []
         self.pcd_framed.append(self.pcd)
         for i in range(len(self.unique_labels) - 1):
             pcd_ = o3d.geometry.PointCloud()
             pcd_.points = o3d.utility.Vector3dVector(self.labeled_points[i])
             obb = pcd_.get_oriented_bounding_box()
+            obb_coords.append(np.asarray(obb.get_box_points()))
             self.pcd_framed.append(obb)
         o3d.visualization.draw_geometries(self.pcd_framed)
-        return self.pcd_framed
+        return self.pcd_framed, obb_coords
 
 
 if __name__ == "__main__":
@@ -58,4 +60,5 @@ if __name__ == "__main__":
     od = ObjectDetection(infile, eps, min_points)
     pcd, labeled_points, unique_labels = od.do_dbscan()
     soif = SelectingObjectsInFrames(pcd, labeled_points, unique_labels)
-    pcd_framed = soif.select_objects_in_frames()
+    pcd_framed, obb_coords = soif.select_objects_in_frames()
+    # print(obb_coords)                                           # frames coords - 8 points for each frame
