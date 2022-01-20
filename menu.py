@@ -8,9 +8,10 @@ from ransac2 import ransac_algorithim
 import numpy as np
 import open3d as o3d
 import os
+import cv2
 import glob
 from tkinter import Tk
-from tkinter.filedialog import askopenfilename, askdirectory
+from tkinter.filedialog import askopenfilename, askdirectory, askopenfilenames
 
 CONST_DIR = os.getcwd() + os.sep + "results"
 
@@ -159,6 +160,37 @@ def get_first_message():
     else:
         print("Error while choosing file. Make sure that bag file unpacked correctly.")
 
+def save_pcd_to_jpg():
+    root = Tk()
+    # root.withdraw()
+    files_to_save = askopenfilenames(title='Choose a file')
+    root.destroy()
+    path = CONST_DIR + os.sep + 'jpg'
+    if os.path.exists(path):
+            delete_files_in_directory(path)
+    else:
+            os.mkdir(path)
+    for i, file in enumerate(files_to_save):
+        pcd = o3d.io.read_point_cloud(file)
+        vis = o3d.visualization.Visualizer()
+        vis.create_window()
+        vis.add_geometry(pcd)
+        vis.update_geometry(pcd)
+        vis.poll_events()
+        vis.update_renderer()
+        vis.capture_screen_image(path + os.sep + f'{i}.jpg')
+        vis.destroy_window()
+
+def show_jpg():
+    root = Tk()
+    # root.withdraw()
+    files_to_show = askopenfilenames()
+    root.destroy()
+    for file in files_to_show:
+        image = cv2.imread(file)
+        cv2.imshow('Image', image) #Show the image
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
 def number_to_func(argument):
     try:
@@ -171,8 +203,10 @@ def number_to_func(argument):
         2: visualize_file,
         3: detect,
         4: visualize_obstacle,
-        5: run_algorithm,
-        6: get_first_message
+        5: save_pcd_to_jpg,
+        6: show_jpg,
+        7: run_algorithm,
+        8: get_first_message
     }
     func = switcher.get(argument, lambda: "Invalid number")
     func()
@@ -186,12 +220,14 @@ def program_menu():
         print("2. Visualize pcd file")
         print("3. Detect obstacle")
         print("4. Visualize obstacle on image")
-        print("5. Run algorithm")
-        print("6. Get first message from rosbag file")
-        print("7. Exit")
-        number = input("Choose what would you like to do (1-7): ")
+        print("5. Save pcd to jpg")
+        print("6. Display files")
+        print("7. Run algorithm")
+        print("8. Get first message from rosbag file")
+        print("9. Exit")
+        number = input("Choose what would you like to do (1-9): ")
         print(f"You chose number {number}")
-        if number == "7":
+        if number == "9":
             quit()
         number_to_func(number)
 
