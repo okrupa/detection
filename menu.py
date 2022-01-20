@@ -11,7 +11,7 @@ import os
 import glob
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename, askdirectory
-from trimming_distant_points import trim_points
+from trimming_distant_points import set_ratio, trim_points
 from detection import detection
 
 CONST_DIR = os.getcwd() + os.sep + "results"
@@ -95,8 +95,10 @@ def detect_list(files):
     for i, file in enumerate(files):
         pcd_load = o3d.io.read_point_cloud(file)
         points_bef = np.asarray(pcd_load.points)
-        points_trim = trim_points(points_bef)
+        
 
+        ratio = set_ratio()
+        points_trim = trim_points(points_bef, ratio)
         points_after = ransac_algorithim(points_trim)
 
         pcd = o3d.geometry.PointCloud()
