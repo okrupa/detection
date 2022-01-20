@@ -1,6 +1,6 @@
 import numpy as np
 import open3d as o3d
-
+from visualize_pcd import show_obstacle
 
 class ObjectDetection:
 
@@ -41,20 +41,43 @@ class SelectingObjectsInFrames:
         obb = []
         obb_coords = []
         self.pcd_framed.append(self.pcd)
+
+        viewer = o3d.visualization.Visualizer()
+        viewer.create_window()
+        ctr = viewer.get_view_control()
+        # pcd = o3d.io.read_point_cloud("1581791678.433744128-result.pcd")
+        viewer.add_geometry(self.pcd)
+        viewer.add_geometry(o3d.geometry.TriangleMesh.create_coordinate_frame())
+
+
+
         for i in range(len(self.unique_labels) - 1):
             pcd_ = o3d.geometry.PointCloud()
             pcd_.points = o3d.utility.Vector3dVector(self.labeled_points[i])
             obb = pcd_.get_oriented_bounding_box()
             obb_coords.append(np.asarray(obb.get_box_points()))
             self.pcd_framed.append(obb)
-        o3d.visualization.draw_geometries(self.pcd_framed)
+            viewer.add_geometry(obb)
+        # show_obstacle(self.pcd_framed)
+        # o3d.visualization.draw_geometries(self.pcd_framed)
+        viewer.update_geometry(pcd)
+        viewer.run()
+        viewer.destroy_window()
         return self.pcd_framed, obb_coords
 
+def detection(infile):
+    eps = 0.2
+    min_points = 40
+    od = ObjectDetection(infile, eps, min_points)
+    pcd, labeled_points, unique_labels = od.do_dbscan()
+    soif = SelectingObjectsInFrames(pcd, labeled_points, unique_labels)
+    pcd_framed, obb_coords = soif.select_objects_in_frames()
+    print(f"\n{infile}: obstacle detect in: {obb_coords}")
 
 if __name__ == "__main__":
     infile = "1581791678.433744128-result.pcd"
-    eps = 0.4
-    min_points = 40
+    eps = 0.21
+    min_points = 15
 
     od = ObjectDetection(infile, eps, min_points)
     pcd, labeled_points, unique_labels = od.do_dbscan()

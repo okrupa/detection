@@ -12,22 +12,19 @@ def print_info(rosbag):
 	print('Output: ' + o.decode('ascii'))
 
 
-def to_pcd(rosbag, topic):
-	cmd = ['rosrun', 'pcl_ros', 'bag_to_pcd', rosbag, topic, './pointclouds']
+def to_pcd(rosbag, topic, path):
+	cmd = ['rosrun', 'pcl_ros', 'bag_to_pcd', rosbag, topic, path]
 	# subprocess.run(cmd, shell=True, check=True)
 	proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	print("PCD files are in ./pointclouds folder")
 
 
-def get_images(rosbag, topic_img):
-	cwd = os.path.abspath(os.getcwd())
-	path_img = os.path.join(cwd, "images")
+def get_images(rosbag, topic_img, path_img, cwd):
 
-	folder = "images"
-	if os.path.exists(folder):
-		delete_files_in_directory(folder)
+	if os.path.exists(path_img):
+		delete_files_in_directory(path_img)
 	else:
-		os.mkdir(folder)
+		os.mkdir(path_img)
 
 	bagfile = os.path.join(cwd, rosbag)
 	topic = topic_img
@@ -39,13 +36,15 @@ def get_images(rosbag, topic_img):
 	print("Images saved in ./images folder")
 
 
-def get_data_from_rosbag(rosbag, topic_pcd = "/os1_cloud_node/points",topic_img = "/pylon_camera_node/image_raw"):
+def get_data_from_rosbag(rosbag, folder_to_save, topic_pcd = "/os1_cloud_node/points",topic_img = "/pylon_camera_node/image_raw"):
 	print_info(rosbag)
 	folder = "pointclouds"
 	if os.path.exists(folder):
 		delete_files_in_directory(folder)
-	to_pcd(rosbag, topic_pcd)
-	get_images(rosbag, topic_img)
+	path = folder_to_save+"/pointclouds"
+	to_pcd(rosbag, topic_pcd, path)
+	path_imgs = folder_to_save+"/images"
+	get_images(rosbag, topic_img, path_imgs, folder_to_save)
 	
 if __name__ == "__main__":
 	if len(sys.argv) == 1:
@@ -64,8 +63,7 @@ if __name__ == "__main__":
 		rosbag = sys.argv[1]
 		topic_pcd = sys.argv[2]
 		topic_img = sys.argv[3]
-	
-	get_data_from_rosbag(rosbag,topic_pcd, topic_img)
+
 
 	
 	

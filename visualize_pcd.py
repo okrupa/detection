@@ -37,6 +37,35 @@ def show_pcd_1(pcd_file, window_name="MainWindow"):
 
     vis.destroy_window()
     vis.close()
+
+
+def show_pcd_1_test(pcd_file, window_name="MainWindow"):
+
+    vis = o3d.visualization.Visualizer()
+    vis.create_window()
+    pcd = o3d.io.read_point_cloud(pcd_file[0])
+    mesh_r = copy.deepcopy(pcd)
+    mesh_r.rotate(pcd.get_rotation_matrix_from_xyz((np.pi/ 1.9, np.pi , np.pi /4.5)),
+                  center=(0, 0, 0))
+    vis.add_geometry(mesh_r)
+    ctr = vis.get_view_control()
+    ctr.change_field_of_view(step=50)
+    print("Field of view (before changing) %.2f" % ctr.get_field_of_view())
+    vis.run()
+    vis.destroy_window()
+
+def show_obstacle(pcd_file, window_name="MainWindow"):
+
+    vis = o3d.visualization.Visualizer()
+    vis.create_window(window_name='MainWindow', width=960, height=540, left=0, top=0)
+
+    mesh_r = copy.deepcopy(pcd_file)
+    # mesh_r.rotate(pcd_file.get_rotation_matrix_from_xyz((np.pi / 1.9, np.pi, np.pi / 4.5)),
+    #               center=(0, 0, 0))
+    # ctr = vis.get_view_control()
+    # ctr.change_field_of_view(step=50)
+    vis.draw_geometries(mesh_r)
+    vis.destroy_window()
 #     start_thread(cos, args =[pcd_file])
 # def cos(pcd_file):
 #     visualization.gui.Application.instance.initialize()

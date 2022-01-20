@@ -11,6 +11,8 @@ import os
 import glob
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename, askdirectory
+from trimming_distant_points import trim_points
+from detection import detection
 
 CONST_DIR = os.getcwd() + os.sep + "results"
 
@@ -37,10 +39,15 @@ def unpack_rosbag():
     root = Tk()
     root.withdraw()
     file = askopenfilename()
+    print(file)
     root.destroy()
-
-    if len(file) != 0:
-        get_data.get_data_from_rosbag(file)
+    if os.path.isfile(file):
+        print("ok")
+    print(file[-4:])
+    if os.path.isfile(file) and file[-4:] == ".bag":
+        get_data.get_data_from_rosbag(file, CONST_DIR)
+        return True
+    return False
 
 def visualize_file():
     root = Tk()
@@ -58,7 +65,10 @@ def detect():
     if len(file) != 0:
         pcd_load = o3d.io.read_point_cloud(file)
         points_bef = np.asarray(pcd_load.points)
-        points_after = ransac_algorithim(points_bef)
+
+        points_trim = trim_points(points_bef)
+
+        points_after = ransac_algorithim(points_trim)
         pcd = o3d.geometry.PointCloud()
         pcd.points = o3d.utility.Vector3dVector(points_after)
         path = CONST_DIR + os.sep + "pcd_files"
@@ -83,14 +93,17 @@ def detect_list(files):
     else:
         os.mkdir(folder)
     for i, file in enumerate(files):
-        print(f"file")
         pcd_load = o3d.io.read_point_cloud(file)
         points_bef = np.asarray(pcd_load.points)
-        points_after = ransac_algorithim(points_bef)
+        points_trim = trim_points(points_bef)
+
+        points_after = ransac_algorithim(points_trim)
+
         pcd = o3d.geometry.PointCloud()
         pcd.points = o3d.utility.Vector3dVector(points_after)
-        o3d.io.write_point_cloud(folder, pcd)
-    path_pcd = CONST_DIR + os.sep +"results"
+        file_name = folder + f"/points{i}.pcd"
+        o3d.io.write_point_cloud(file_name, pcd)
+    path_pcd = CONST_DIR + os.sep + "ransac_files"
     p_pcd = path_pcd + "/*.pcd"
     pcd = [f for f in glob.glob(p_pcd)]
     pcd.sort()
@@ -100,64 +113,89 @@ def detect_list(files):
 def visualize_obstacle():
     print("Visualize obstacle not implemented yet")
 
+# def detect_obstacle(pcd_list):
+#
+#     for p in pcd_list:
+#         detect_and_show_obstacle(p):
+
+def get_interval():
+    DIR = CONST_DIR + os.sep + "pointclouds"
+    ext_files_num = len([name for name in os.listdir(DIR) if os.path.isfile(os.path.join(DIR, name))])
+    while True:
+        interval = input(
+            f"Insert desired interval (number of iterations) between displaying extracted point clouds {ext_files_num}:")
+        is_int = all(i.isdigit() for i in interval)
+        if is_int:
+            if int(interval) <= ext_files_num or int(interval) >= 1:
+                return int(interval)
+            else:
+                while True:
+                    next = input(f"Invalid input, do you want to re-enter the value?\nYes - y\nNo -n\n")
+                    if next == 'n' or next == 'y':
+                        break
+                if next == 'n':
+                    return -1
+        else:
+            while True:
+                next = input(f"Invalid input, do you want to re-enter the value?\n Yes - y\nNo -n")
+                if next == 'n' or next == 'y':
+                    break
+            if next == 'n':
+                return -1
+
 
 def run_algorithm():
-    unpack_rosbag()
-    output = choose_pcd.get_sequence(150)
-    if output is not None:
-        print("Run ransac")
-        ransac_output = detect_list(output)
-        print("Get results")
-
-        folder = CONST_DIR + os.sep +"results"
-        if os.path.exists(folder):
-            delete_files_in_directory(folder)
+    # unpack = unpack_rosbag()
+    unpack = True
+    if unpack:
+        interval = get_interval()
+        if interval == -1:
+            return
         else:
-            os.mkdir(folder)
+            output = choose_pcd.get_sequence(interval, CONST_DIR)
+            if output is not None:
+                print("Run ransac")
+                ransac_output = detect_list(output)
+                print("Get results")
 
-        for i in ransac_output:
-            dbscan.do_dbscan(i)
+                # folder = CONST_DIR + os.sep +"results"
+                # if os.path.exists(folder):
+                #     delete_files_in_directory(folder)
+                # else:
+                #     os.mkdir(folder)
 
-        cwd = os.path.abspath(os.getcwd())
-        path_pcd = CONST_DIR + os.sep + "results"
-        p_pcd = path_pcd + "/*.pcd"
-        pcd = [f for f in glob.glob(p_pcd)]
-        pcd.sort()
+                for i in ransac_output:
+                    detection(i)
 
-        visualize_pcd.show(pcd)
-
+            else:
+                print("Error while choosing file. Make sure that bag file unpacked correctly.")
     else:
-        print("Error while choosing file. Make sure that bag file unpacked correctly.")
-
+        print("Wrong file")
 
 def get_first_message():
-    unpack_rosbag()
-    output = choose_pcd.get_first()
-    if output is not None:
+    # unpack = unpack_rosbag()
+    unpack = True
+    if unpack:
+        output = choose_pcd.get_first(CONST_DIR)
+        if output is not None:
 
-        print("Run ransac")
-        ransac_output = detect_list(output)
-        print("Get results")
+            print("Run ransac")
+            ransac_output = detect_list(output)
+            print("Get results")
 
-        folder = CONST_DIR + os.sep + "results"
-        if os.path.exists(folder):
-            delete_files_in_directory(folder)
+            # folder = CONST_DIR + os.sep + "results"
+            # if os.path.exists(folder):
+            #     delete_files_in_directory(folder)
+            # else:
+            #     os.mkdir(folder)
+
+            for i in ransac_output:
+                detection(i)
+
         else:
-            os.mkdir(folder)
-
-        for i in ransac_output:
-            dbscan.do_dbscan(i)
-
-        cwd = os.path.abspath(os.getcwd())
-        path_pcd = CONST_DIR + os.sep + "results"
-        p_pcd = path_pcd + "/*.pcd"
-        pcd = [f for f in glob.glob(p_pcd)]
-        pcd.sort()
-
-        visualize_pcd.show_pcd_1(pcd)
-
+            print("Error while choosing file. Make sure that bag file unpacked correctly.")
     else:
-        print("Error while choosing file. Make sure that bag file unpacked correctly.")
+        print("Wrong file")
 
 
 def number_to_func(argument):

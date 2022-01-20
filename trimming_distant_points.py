@@ -24,6 +24,26 @@ def trim_distant_points(points, other, ratio=0.75):
     return points
 
 
+def delete_algorithim(points):
+
+    points_to_del = []
+    for i, coord in enumerate(points):
+        if coord[1] > 0:
+             points_to_del.append(i)
+        if coord[0] > 0:
+             points_to_del.append(i)
+    points = np.delete(points, points_to_del, 0)
+    return points
+
+def trim_points(points_bef):
+    # points_after = delete_algorithim(points_bef)
+    other = [0, 0]
+    ratio = 0.3
+    points_after = trim_distant_points(points=points_bef, other=other, ratio=ratio)
+    return points_after
+
+
+
 if __name__ == '__main__':
 
     pcd_load = o3d.io.read_point_cloud("1581791723.233274624.pcd")
