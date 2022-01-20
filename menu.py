@@ -22,31 +22,29 @@ def clearConsole():
         command = 'cls'
     os.system(command)
 
-def save_file(pcd):
-    root = Tk()
-    root.withdraw()
-    dir = askdirectory(title='Choose a directory')
-    root.destroy()
-    filename = input("Enter file name: ")
-    last_chars = filename[-4:]
-    if last_chars != '.pcd':
-        filename = filename + '.pcd'
-    filename = dir + '/' + filename
-    o3d.io.write_point_cloud(filename, pcd)
-    return filename
+# def save_file(pcd):
+#     root = Tk()
+#     root.withdraw()
+#     dir = askdirectory(title='Choose a directory')
+#     root.destroy()
+#     filename = input("Enter file name: ")
+#     last_chars = filename[-4:]
+#     if last_chars != '.pcd':
+#         filename = filename + '.pcd'
+#     filename = dir + '/' + filename
+#     o3d.io.write_point_cloud(filename, pcd)
+#     return filename
 
 def unpack_rosbag():
     root = Tk()
     root.withdraw()
     file = askopenfilename()
-    print(file)
     root.destroy()
-    if os.path.isfile(file):
-        print("ok")
-    print(file[-4:])
-    if os.path.isfile(file) and file[-4:] == ".bag":
+    if os.path.isfile(str(file)) and str(file)[-4:] == ".bag":
         get_data.get_data_from_rosbag(file, CONST_DIR)
         return True
+    else:
+        print("Invalid input")
     return False
 
 def visualize_file():
@@ -54,36 +52,41 @@ def visualize_file():
     root.withdraw()
     file = askopenfilename()
     root.destroy()
-    visualize_pcd.show_pcd_1([file])
+    if os.path.isfile(str(file)) and str(file)[-4:] == ".pcd":
+        visualize_pcd.show_pcd_1([str(file)])
+    else:
+        print("Wrong input file")
+    # file="1581791723.233274624.pcd"
+    # visualize_pcd.show_pcd_1([file])
 
-def detect():
-    root = Tk()
-    root.withdraw()
-    file = askopenfilename(title='Choose a file')
-    root.destroy()
-    # file = "/home/kolga/Desktop/testpzsp2/pzsp2/pcd_files/1581791678.433744128.pcd"
-    if len(file) != 0:
-        pcd_load = o3d.io.read_point_cloud(file)
-        points_bef = np.asarray(pcd_load.points)
-
-        points_trim = trim_points(points_bef)
-
-        points_after = ransac_algorithim(points_trim)
-        pcd = o3d.geometry.PointCloud()
-        pcd.points = o3d.utility.Vector3dVector(points_after)
-        path = CONST_DIR + os.sep + "pcd_files"
-        if not os.path.isdir(path):
-            os.mkdir(path)
-        o3d.io.write_point_cloud(path, pcd)
-
-        folder = CONST_DIR + os.sep + "results"
-        if not os.path.exists(folder):
-            os.mkdir(folder)
-        dbscan.do_dbscan(path)
-        file_s = file.split("/")
-        f = file_s[-1]
-        file_dbscan = os.path.abspath(folder + os.sep + f[:-4] + "-ransac-result.pcd")
-        visualize_pcd.show_pcd_1([file_dbscan])
+# def detect():
+#     root = Tk()
+#     root.withdraw()
+#     file = askopenfilename(title='Choose a file')
+#     root.destroy()
+#     # file = "/home/kolga/Desktop/testpzsp2/pzsp2/pcd_files/1581791678.433744128.pcd"
+#     if len(file) != 0:
+#         pcd_load = o3d.io.read_point_cloud(file)
+#         points_bef = np.asarray(pcd_load.points)
+#
+#         points_trim = trim_points(points_bef)
+#
+#         points_after = ransac_algorithim(points_trim)
+#         pcd = o3d.geometry.PointCloud()
+#         pcd.points = o3d.utility.Vector3dVector(points_after)
+#         path = CONST_DIR + os.sep + "pcd_files"
+#         if not os.path.isdir(path):
+#             os.mkdir(path)
+#         o3d.io.write_point_cloud(path, pcd)
+#
+#         folder = CONST_DIR + os.sep + "results"
+#         if not os.path.exists(folder):
+#             os.mkdir(folder)
+#         dbscan.do_dbscan(path)
+#         file_s = file.split("/")
+#         f = file_s[-1]
+#         file_dbscan = os.path.abspath(folder + os.sep + f[:-4] + "-ransac-result.pcd")
+#         visualize_pcd.show_pcd_1([file_dbscan])
 
 
 def detect_list(files):
@@ -93,6 +96,7 @@ def detect_list(files):
     else:
         os.mkdir(folder)
     for i, file in enumerate(files):
+        print(file)
         pcd_load = o3d.io.read_point_cloud(file)
         points_bef = np.asarray(pcd_load.points)
         points_trim = trim_points(points_bef)
@@ -111,12 +115,15 @@ def detect_list(files):
 
 
 def visualize_obstacle():
-    print("Visualize obstacle not implemented yet")
+    root = Tk()
+    root.withdraw()
+    file = askopenfilename()
+    root.destroy()
+    if os.path.isfile(str(file)) and str(file)[-4:] == ".pcd":
+        detection(str(file), False)
+    else:
+        print("Wrong input file")
 
-# def detect_obstacle(pcd_list):
-#
-#     for p in pcd_list:
-#         detect_and_show_obstacle(p):
 
 def get_interval():
     DIR = CONST_DIR + os.sep + "pointclouds"
@@ -145,8 +152,9 @@ def get_interval():
 
 
 def run_algorithm():
-    # unpack = unpack_rosbag()
-    unpack = True
+    unpack = unpack_rosbag()
+
+    #unpack = True
     if unpack:
         interval = get_interval()
         if interval == -1:
@@ -158,14 +166,8 @@ def run_algorithm():
                 ransac_output = detect_list(output)
                 print("Get results")
 
-                # folder = CONST_DIR + os.sep +"results"
-                # if os.path.exists(folder):
-                #     delete_files_in_directory(folder)
-                # else:
-                #     os.mkdir(folder)
-
                 for i in ransac_output:
-                    detection(i)
+                    detection(i, True)
 
             else:
                 print("Error while choosing file. Make sure that bag file unpacked correctly.")
@@ -173,24 +175,19 @@ def run_algorithm():
         print("Wrong file")
 
 def get_first_message():
-    # unpack = unpack_rosbag()
-    unpack = True
+    unpack = unpack_rosbag()
+    #unpack = True
     if unpack:
         output = choose_pcd.get_first(CONST_DIR)
         if output is not None:
 
-            print("Run ransac")
+            print("Run ransac for:")
             ransac_output = detect_list(output)
             print("Get results")
 
-            # folder = CONST_DIR + os.sep + "results"
-            # if os.path.exists(folder):
-            #     delete_files_in_directory(folder)
-            # else:
-            #     os.mkdir(folder)
 
             for i in ransac_output:
-                detection(i)
+                detection(i, True)
 
         else:
             print("Error while choosing file. Make sure that bag file unpacked correctly.")
@@ -205,12 +202,11 @@ def number_to_func(argument):
         print("Invalid input. Input should be a number.")
         return
     switcher = {
-        1: unpack_rosbag,
-        2: visualize_file,
-        3: detect,
-        4: visualize_obstacle,
-        5: run_algorithm,
-        6: get_first_message
+        1: run_algorithm,
+        2: get_first_message,
+        3: unpack_rosbag,
+        4: visualize_file,
+        5: visualize_obstacle
     }
     func = switcher.get(argument, lambda: "Invalid number")
     func()
@@ -220,16 +216,15 @@ def program_menu():
     clearConsole()
     while True:
         print("Menu")
-        print("1. Unpack rosbag")
-        print("2. Visualize pcd file")
-        print("3. Detect obstacle")
-        print("4. Visualize obstacle on image")
-        print("5. Run algorithm")
-        print("6. Get first message from rosbag file")
-        print("7. Exit")
-        number = input("Choose what would you like to do (1-7): ")
+        print("1. Run algorithm (Extracting .bag file, get interval between displaying extracted point clouds and show detected obstacles")
+        print("2. Get first message from rosbag file (Extract from .ros file and show detected obstacle on first .pcd file")
+        print("3. Unpack rosbag")
+        print("4. Visualize pcd file")
+        print("5. Visualize obstacle on pcd file")
+        print("6. Exit")
+        number = input("Choose what would you like to do (1-6): ")
         print(f"You chose number {number}")
-        if number == "7":
+        if number == "6":
             quit()
         number_to_func(number)
 

@@ -38,10 +38,9 @@ def get_images(rosbag, topic_img, path_img, cwd):
 
 def get_data_from_rosbag(rosbag, folder_to_save, topic_pcd = "/os1_cloud_node/points",topic_img = "/pylon_camera_node/image_raw"):
 	print_info(rosbag)
-	folder = "pointclouds"
-	if os.path.exists(folder):
-		delete_files_in_directory(folder)
 	path = folder_to_save+"/pointclouds"
+	if os.path.exists(path):
+		delete_files_in_directory(path)
 	to_pcd(rosbag, topic_pcd, path)
 	path_imgs = folder_to_save+"/images"
 	get_images(rosbag, topic_img, path_imgs, folder_to_save)
