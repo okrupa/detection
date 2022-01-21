@@ -1,6 +1,6 @@
 import os
 import glob
-
+import shutil
 
 def get_list(cwd):
     path_img = os.path.join(cwd, "images")
@@ -25,11 +25,19 @@ def get_pcd(imgs, pcd, num):
     return pcd_file
 
 
-def get_first(CONST_DIR):
-    imgs, pcd = get_list(CONST_DIR)
+def save_jpg(imgs,num, path):
+    src = imgs[num]
+    shutil.copy(src, path)
+
+
+def get_first(dir):
+    imgs, pcd = get_list(dir)
 
     if imgs and pcd:
+        path_save_jpg = os.path.join(dir, "jpg_sequence")
+        save_jpg(imgs, 0, path_save_jpg)
         return [get_pcd(imgs, pcd, 0)]
+
 
 #wybierz co x plik pcd
 def get_sequence(step, dir):
@@ -37,8 +45,11 @@ def get_sequence(step, dir):
     num_files = len(pcd)
     files = []
     if imgs and pcd:
+        file_name = 0
+        path_save_jpg = os.path.join(dir, "jpg_sequence")
         for i in range(0, num_files, step):
-
+            save_jpg(imgs, i, path_save_jpg)
             pcd_file = get_pcd(imgs, pcd, i)
             files.append(pcd_file)
+            file_name += 1
         return files

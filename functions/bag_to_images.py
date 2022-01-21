@@ -40,3 +40,5 @@ def bag_to_jpg(ros_bag,dir,topic):
 
     return
 
+
+

@@ -2,6 +2,7 @@ import subprocess
 import os
 import os.path
 from functions.delete_files import delete_files_in_directory
+from functions.bag_to_images import bag_to_jpg
 
 
 def print_info(rosbag):
@@ -28,8 +29,9 @@ def get_images(rosbag, topic_img, path_img, cwd):
 	bagfile = os.path.join(cwd, rosbag)
 	topic = topic_img
 	s = " "
-	command = "python bag_to_images.py " + bagfile + s + path_img + s + topic
-	os.system(command)
+	bag_to_jpg(bagfile, path_img, topic)
+	# command = "python functbag_to_images.py " + bagfile + s + path_img + s + topic
+	# os.system(command)
 
 	print("Images saved in ./images folder")
 

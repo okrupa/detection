@@ -1,6 +1,8 @@
 import numpy as np
 import open3d as o3d
+import os
 from multiprocessing import Process
+from functions.delete_files import delete_files_in_directory
 
 
 class ObjectDetection:
@@ -38,7 +40,7 @@ class SelectingObjectsInFrames:
         self.labeled_points = labeled_points
         self.unique_labels = unique_labels
 
-    def select_objects_in_frames(self, save):
+    def select_objects_in_frames(self, save, path, file_name):
         obb_coords = []
         obstacles = []
 
@@ -48,25 +50,46 @@ class SelectingObjectsInFrames:
             obb = pcd_.get_oriented_bounding_box()
             obb_coords.append(np.asarray(obb.get_box_points()))
             obstacles.append(obb)
-        self.show(obstacles)
+        self.show(obstacles, path, file_name, save)
         return self.pcd_framed, obb_coords
 
-    def show(self, obstacles):
-        def f(obstacles):
+    def show(self, obstacles, dir, file_name, save):
+
+        def view_and_save(obstacles, path, file_name):
             viewer = o3d.visualization.Visualizer()
             viewer.create_window()
-            ctr = viewer.get_view_control()
             viewer.add_geometry(self.pcd)
             viewer.add_geometry(o3d.geometry.TriangleMesh.create_coordinate_frame())
 
             for obb in obstacles:
                 viewer.add_geometry(obb)
+
             viewer.run()
+            viewer.poll_events()
+            viewer.update_renderer()
+            viewer.capture_screen_image(path + os.sep + f'{file_name}.jpg')
+
             viewer.destroy_window()
 
-        p = Process(target=f, args=(obstacles,))
-        p.start()
-        p.join()
+        def view(obstacles):
+            viewer = o3d.visualization.Visualizer()
+            viewer.create_window()
+            viewer.add_geometry(self.pcd)
+            viewer.add_geometry(o3d.geometry.TriangleMesh.create_coordinate_frame())
+
+            for obb in obstacles:
+                viewer.add_geometry(obb)
+
+            viewer.run()
+            viewer.destroy_window()
+        if save:
+            p = Process(target=view_and_save, args=(obstacles, dir, file_name,))
+            p.start()
+            p.join()
+        else:
+            p = Process(target=view, args=(obstacles,))
+            p.start()
+            p.join()
 
 
 def detection(infile, save):
@@ -78,3 +101,11 @@ def detection(infile, save):
     pcd_framed, obb_coords = soif.select_objects_in_frames(save)
     print(f"\n{infile}: obstacle detect in: {obb_coords}")
 
+def detection_save(infile, path, file_name, save):
+    eps = 0.2
+    min_points = 40
+    od = ObjectDetection(infile, eps, min_points)
+    pcd, labeled_points, unique_labels = od.do_dbscan()
+    soif = SelectingObjectsInFrames(pcd, labeled_points, unique_labels)
+    pcd_framed, obb_coords = soif.select_objects_in_frames(save, path, file_name)
+    print(f"\n{infile}: obstacle detect in: {obb_coords}")

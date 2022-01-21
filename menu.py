@@ -4,6 +4,8 @@ import os
 import glob
 from tkinter import Tk
 import shutil
+import cv2
+from matplotlib import pyplot as plt
 
 from functions.visualize_pcd import show_pcd_1
 from functions.get_data import get_data_from_rosbag
@@ -12,7 +14,7 @@ from functions.delete_files import delete_files_in_directory
 from functions.ransac2 import ransac_algorithim
 from tkinter.filedialog import askopenfilename, askdirectory
 from functions.trimming_distant_points import set_ratio, trim_points
-from functions.detection import detection
+from functions.detection import detection, detection_save
 
 
 CONST_DIR = os.getcwd() + os.sep + "results"
@@ -105,7 +107,8 @@ def visualize_obstacle():
     file = askopenfilename()
     root.destroy()
     if os.path.isfile(str(file)) and str(file)[-4:] == ".pcd":
-        detection(str(file), False)
+        detection_save(str(file), CONST_DIR, 0, False)
+        #detection(str(file), False)
     else:
         print("Wrong input file")
 
@@ -136,6 +139,23 @@ def get_interval():
                 return -1
 
 
+def ransac_and_detect(output):
+    print("Run ransac")
+    ransac_output = detect_list(output)
+    print("Get results")
+
+    path_ipg = CONST_DIR + os.sep + 'screenshot'
+    if os.path.exists(path_ipg):
+        delete_files_in_directory(path_ipg)
+    else:
+        os.mkdir(path_ipg)
+
+    for i, file in enumerate(ransac_output):
+        detection_save(file, path_ipg, i, True)
+    # for i in ransac_output:
+    #     detection(i, True)
+
+
 def run_algorithm():
     pcl = CONST_DIR + os.sep + "pointclouds"
     img = CONST_DIR + os.sep + "images"
@@ -145,14 +165,15 @@ def run_algorithm():
         if interval == -1:
             return
         else:
+            path_ipg = CONST_DIR + os.sep + 'jpg_sequence'
+            if os.path.exists(path_ipg):
+                delete_files_in_directory(path_ipg)
+            else:
+                os.mkdir(path_ipg)
             output = get_sequence(interval, CONST_DIR)
             if output is not None:
-                print("Run ransac")
-                ransac_output = detect_list(output)
-                print("Get results")
+                ransac_and_detect(output)
 
-                for i in ransac_output:
-                    detection(i, True)
             else:
                 print("Error while choosing file. Make sure that bag file unpacked correctly.")
     else:
@@ -163,15 +184,15 @@ def extract_and_run_algorithm():
     unpack = unpack_rosbag()
 
     if unpack:
+        path_ipg = CONST_DIR + os.sep + 'jpg_sequence'
+        if os.path.exists(path_ipg):
+            delete_files_in_directory(path_ipg)
+        else:
+            os.mkdir(path_ipg)
         interval = 100
         output = get_sequence(interval, CONST_DIR)
         if output is not None:
-            print("Run ransac")
-            ransac_output = detect_list(output)
-            print("Get results")
-
-            for i in ransac_output:
-                detection(i, True)
+            ransac_and_detect(output)
 
         else:
             print("Error while choosing file. Make sure that bag file unpacked correctly.")
@@ -182,15 +203,17 @@ def extract_and_run_algorithm():
 def extract_and_get_first_message():
     unpack = unpack_rosbag()
     if unpack:
+
+        path_ipg = CONST_DIR + os.sep + 'jpg_sequence'
+        if os.path.exists(path_ipg):
+            delete_files_in_directory(path_ipg)
+        else:
+            os.mkdir(path_ipg)
+
         output = get_first(CONST_DIR)
         if output is not None:
 
-            print("Run ransac for:")
-            ransac_output = detect_list(output)
-            print("Get results")
-
-            for i in ransac_output:
-                detection(i, True)
+            ransac_and_detect(output)
 
         else:
             print("Error while choosing file. Make sure that bag file unpacked correctly.")
@@ -202,21 +225,75 @@ def get_first_message():
     pcl = CONST_DIR + os.sep + "pointclouds"
     img = CONST_DIR + os.sep + "images"
     if os.path.isdir(pcl) and os.path.isdir(img):
+
+        path_ipg = CONST_DIR + os.sep + 'jpg_sequence'
+        if os.path.exists(path_ipg):
+            delete_files_in_directory(path_ipg)
+        else:
+            os.mkdir(path_ipg)
+
         output = get_first(CONST_DIR)
+
         if output is not None:
 
-            print("Run ransac for:")
-            ransac_output = detect_list(output)
-            print("Get results")
-
-            for i in ransac_output:
-                detection(i, True)
+            ransac_and_detect(output)
 
         else:
             print("Error while choosing file. Make sure that bag file unpacked correctly.")
     else:
         print("Please get the data from the .bag file first and make sure that bag file unpacked correctly.\n")
 
+
+def get_jpg():
+    path_pcd_jpg = os.path.join(CONST_DIR, "screenshot")
+    path_jpg = os.path.join(CONST_DIR, "jpg_sequence")
+
+    if os.path.exists(path_pcd_jpg) and os.path.exists(path_jpg) and len(os.listdir(path_jpg)) >0 and len(os.listdir(path_pcd_jpg)) >0 :
+        p_png = path_jpg + "/*.png"
+        p_pcd_jpg = path_pcd_jpg + "/*.jpg"
+        bag_png = [f for f in glob.glob(p_png)]
+        screenshots = [f for f in glob.glob(p_pcd_jpg)]
+        screenshots.sort()
+        bag_png.sort()
+
+        return bag_png, screenshots
+    else:
+        print('Direcory ./screenshot or ./jpg_sequence doesnt exist. Please run beforehand "Run algorithm..." or "Get first message ..."')
+        return [], []
+
+def visual_jpg():
+    bag_png, screenshots = get_jpg()
+    if bag_png and screenshots:
+        for i in range(len(bag_png)):
+            fig = plt.figure(figsize=(20, 10))
+
+            # setting values to rows and column variables
+            rows = 1
+            columns = 2
+
+            # reading images
+            bag_image = cv2.imread(bag_png[i])
+            screenshots_image = cv2.imread(screenshots[i])
+
+            # Adds a subplot at the 1st position
+            fig.add_subplot(rows, columns, 1)
+
+            # showing image
+            plt.imshow(bag_image, aspect='auto')
+            plt.axis('off')
+            plt.title("Png file from .bag")
+
+            # Adds a subplot at the 2nd position
+            fig.add_subplot(rows, columns, 2)
+
+            # showing image
+            plt.imshow(screenshots_image, aspect='auto')
+            plt.axis('off')
+            plt.title("Screenshot from detecting obstacles")
+            plt.show()
+
+    else:
+        print('Error while reading from ./screenshot or ./jpg_sequence folder. Make sure that folder isnt empty.')
 
 def number_to_func(argument):
     try:
@@ -231,7 +308,8 @@ def number_to_func(argument):
         4: visualize_file,
         5: visualize_obstacle,
         6: extract_and_run_algorithm,
-        7: extract_and_get_first_message
+        7: extract_and_get_first_message,
+        8: visual_jpg
     }
     func = switcher.get(argument, lambda: "Invalid number")
     func()
@@ -248,10 +326,11 @@ def program_menu():
         print("5. Visualize obstacle on pcd file")
         print("6. Extract from .ros file and run algorithm (with interval=100 between displaying extracted point clouds), show detected obstacles")
         print("7. Extract .ros file and show detected obstacle on first .pcd file")
-        print("8. Exit")
-        number = input("Choose what would you like to do (1-8): ")
+        print("8. View png file from .bag and jpg from detection")
+        print("9. Exit")
+        number = input("Choose what would you like to do (1-9): ")
         print(f"You chose number {number}")
-        if number == "8":
+        if number == "9":
             quit()
         number_to_func(number)
 
@@ -270,3 +349,4 @@ if __name__ == "__main__":
         # else:
         #     delete_files_in_directory(CONST_DIR)
     program_menu()
+
