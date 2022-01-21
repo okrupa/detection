@@ -3,7 +3,7 @@ import sys
 import os
 import os.path
 from delete_files import delete_files_in_directory
-
+from multiprocessing import Process
 
 def print_info(rosbag):
 	cmd = ['time', 'rosbag', 'info', rosbag]
@@ -13,10 +13,14 @@ def print_info(rosbag):
 
 
 def to_pcd(rosbag, topic, path):
+	print('Extracting pcd files...')
 	cmd = ['rosrun', 'pcl_ros', 'bag_to_pcd', rosbag, topic, path]
 	# subprocess.run(cmd, shell=True, check=True)
 	proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	o, e = proc.communicate()
+	# print(e)
 	print("PCD files are in ./pointclouds folder")
+
 
 
 def get_images(rosbag, topic_img, path_img, cwd):
@@ -30,7 +34,6 @@ def get_images(rosbag, topic_img, path_img, cwd):
 	topic = topic_img
 	s = " "
 	command = "python bag_to_images.py " + bagfile + s + path_img + s + topic
-	print(command)
 	os.system(command)
 
 	print("Images saved in ./images folder")

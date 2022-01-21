@@ -2,7 +2,6 @@ from cv2 import destroyWindow
 import visualize_pcd
 import get_data
 import choose_pcd
-import dbscan
 from delete_files import delete_files_in_directory
 from ransac2 import ransac_algorithim
 import numpy as np
@@ -11,8 +10,9 @@ import os
 import glob
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename, askdirectory
-from trimming_distant_points import trim_points
+from trimming_distant_points import set_ratio, trim_points
 from detection import detection
+import shutil
 
 CONST_DIR = os.getcwd() + os.sep + "results"
 
@@ -37,6 +37,7 @@ def clearConsole():
 
 def unpack_rosbag():
     root = Tk()
+    root.title('Choose .bag file')
     root.withdraw()
     file = askopenfilename()
     root.destroy()
@@ -47,6 +48,28 @@ def unpack_rosbag():
         print("Invalid input")
     return False
 
+def check_unpack_rosbag():
+    pcl = CONST_DIR + os.sep + "pointclouds"
+    img = CONST_DIR + os.sep + "images"
+    if os.path.isdir(pcl) or os.path.isdir(img):
+        while True:
+            delete = input("Folder in witch pcd files and images files will be saved already exist. DO you want to delete these folders content and unpack .bag date to these folders?\nYes-y\nNo-n\n")
+            if delete.isalpha():
+                if delete == 'y' :
+                    if os.path.isdir(pcl):
+                        shutil.rmtree(pcl)
+                    if os.path.isdir(img):
+                        shutil.rmtree(img)
+                    unpack_rosbag()
+                    return
+                elif delete =='n':
+                    return
+                else:
+                    print(f"Invalid input\n")
+            else:
+                print(f"Invalid input\n")
+    else:
+        unpack_rosbag()
 def visualize_file():
     root = Tk()
     root.withdraw()
@@ -95,12 +118,12 @@ def detect_list(files):
         delete_files_in_directory(folder)
     else:
         os.mkdir(folder)
+    ratio = set_ratio()
     for i, file in enumerate(files):
         print(file)
         pcd_load = o3d.io.read_point_cloud(file)
         points_bef = np.asarray(pcd_load.points)
-        points_trim = trim_points(points_bef)
-
+        points_trim = trim_points(points_bef, ratio)
         points_after = ransac_algorithim(points_trim)
 
         pcd = o3d.geometry.PointCloud()
@@ -152,10 +175,10 @@ def get_interval():
 
 
 def run_algorithm():
-    unpack = unpack_rosbag()
+    pcl = CONST_DIR + os.sep + "pointclouds"
+    img = CONST_DIR + os.sep + "images"
+    if os.path.isdir(pcl) and os.path.isdir(img):
 
-    #unpack = True
-    if unpack:
         interval = get_interval()
         if interval == -1:
             return
@@ -172,19 +195,19 @@ def run_algorithm():
             else:
                 print("Error while choosing file. Make sure that bag file unpacked correctly.")
     else:
-        print("Wrong file")
+        print("Please get the data from the .bag file first and make sure that bag file unpacked correctly.\n")
 
-def get_first_message():
+
+def extract_and_run_algorithm():
     unpack = unpack_rosbag()
-    #unpack = True
-    if unpack:
-        output = choose_pcd.get_first(CONST_DIR)
-        if output is not None:
 
-            print("Run ransac for:")
+    if unpack:
+        interval = 100
+        output = choose_pcd.get_sequence(interval, CONST_DIR)
+        if output is not None:
+            print("Run ransac")
             ransac_output = detect_list(output)
             print("Get results")
-
 
             for i in ransac_output:
                 detection(i, True)
@@ -195,6 +218,45 @@ def get_first_message():
         print("Wrong file")
 
 
+def extract_and_get_first_message():
+    unpack = unpack_rosbag()
+    if unpack:
+        output = choose_pcd.get_first(CONST_DIR)
+        if output is not None:
+
+            print("Run ransac for:")
+            ransac_output = detect_list(output)
+            print("Get results")
+
+            for i in ransac_output:
+                detection(i, True)
+
+        else:
+            print("Error while choosing file. Make sure that bag file unpacked correctly.")
+    else:
+        print("Wrong file")
+
+
+def get_first_message():
+    pcl = CONST_DIR + os.sep + "pointclouds"
+    img = CONST_DIR + os.sep + "images"
+    if os.path.isdir(pcl) and os.path.isdir(img):
+        output = choose_pcd.get_first(CONST_DIR)
+        if output is not None:
+
+            print("Run ransac for:")
+            ransac_output = detect_list(output)
+            print("Get results")
+
+            for i in ransac_output:
+                detection(i, True)
+
+        else:
+            print("Error while choosing file. Make sure that bag file unpacked correctly.")
+    else:
+        print("Please get the data from the .bag file first and make sure that bag file unpacked correctly.\n")
+
+
 def number_to_func(argument):
     try:
         argument = int(argument)
@@ -202,11 +264,13 @@ def number_to_func(argument):
         print("Invalid input. Input should be a number.")
         return
     switcher = {
-        1: run_algorithm,
-        2: get_first_message,
-        3: unpack_rosbag,
+        1: check_unpack_rosbag,
+        2: run_algorithm,
+        3: get_first_message,
         4: visualize_file,
-        5: visualize_obstacle
+        5: visualize_obstacle,
+        6: extract_and_run_algorithm,
+        7: extract_and_get_first_message
     }
     func = switcher.get(argument, lambda: "Invalid number")
     func()
@@ -216,15 +280,17 @@ def program_menu():
     clearConsole()
     while True:
         print("Menu")
-        print("1. Run algorithm (Extracting .bag file, get interval between displaying extracted point clouds and show detected obstacles")
-        print("2. Get first message from rosbag file (Extract from .ros file and show detected obstacle on first .pcd file")
-        print("3. Unpack rosbag")
+        print("1. Unpack rosbag")
+        print("2. Run algorithm (Get data from previously extracted .bag file, next get interval between displaying extracted point clouds and show detected obstacles")
+        print("3. Get first message from rosbag file (Get data from previously extracted .bag file and show detected obstacle on first .pcd file")
         print("4. Visualize pcd file")
         print("5. Visualize obstacle on pcd file")
-        print("6. Exit")
-        number = input("Choose what would you like to do (1-6): ")
+        print("6. Extract from .ros file and run algorithm (with interval=100 between displaying extracted point clouds), show detected obstacles")
+        print("7. Extract .ros file and show detected obstacle on first .pcd file")
+        print("8. Exit")
+        number = input("Choose what would you like to do (1-8): ")
         print(f"You chose number {number}")
-        if number == "6":
+        if number == "8":
             quit()
         number_to_func(number)
 
