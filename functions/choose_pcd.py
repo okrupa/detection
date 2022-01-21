@@ -1,6 +1,4 @@
 import os
-from os import listdir
-from os.path import isfile, join
 import glob
 
 
@@ -21,6 +19,7 @@ def get_list(cwd):
         print("Direcory ./images or ./pointclouds doesnt exist.")
         return [], []
 
+
 def get_pcd(imgs, pcd, num):
     pcd_file = pcd[num]
     return pcd_file
@@ -32,16 +31,8 @@ def get_first(CONST_DIR):
     if imgs and pcd:
         return [get_pcd(imgs, pcd, 0)]
 
+#wybierz co x plik pcd
 def get_sequence(step, dir):
-    # imgs, pcd = get_list()
-    # num_files = len(pcd)
-    # files = []
-    # if imgs and pcd:
-    #     for i in range(0, num_files, 10):
-    #         files.append(get_pcd(imgs, pcd, i))
-    #     return files
-    # else:
-    #     return
     imgs, pcd = get_list(dir)
     num_files = len(pcd)
     files = []

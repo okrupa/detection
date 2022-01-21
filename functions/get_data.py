@@ -1,9 +1,8 @@
 import subprocess
-import sys
 import os
 import os.path
-from delete_files import delete_files_in_directory
-from multiprocessing import Process
+from functions.delete_files import delete_files_in_directory
+
 
 def print_info(rosbag):
 	cmd = ['time', 'rosbag', 'info', rosbag]
@@ -15,16 +14,12 @@ def print_info(rosbag):
 def to_pcd(rosbag, topic, path):
 	print('Extracting pcd files...')
 	cmd = ['rosrun', 'pcl_ros', 'bag_to_pcd', rosbag, topic, path]
-	# subprocess.run(cmd, shell=True, check=True)
 	proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	o, e = proc.communicate()
-	# print(e)
 	print("PCD files are in ./pointclouds folder")
 
 
-
 def get_images(rosbag, topic_img, path_img, cwd):
-
 	if os.path.exists(path_img):
 		delete_files_in_directory(path_img)
 	else:
@@ -47,24 +42,7 @@ def get_data_from_rosbag(rosbag, folder_to_save, topic_pcd = "/os1_cloud_node/po
 	to_pcd(rosbag, topic_pcd, path)
 	path_imgs = folder_to_save+"/images"
 	get_images(rosbag, topic_img, path_imgs, folder_to_save)
-	
-if __name__ == "__main__":
-	if len(sys.argv) == 1:
-		rosbag = "example_synced.bag"
-		topic_pcd = "/os1_cloud_node/points"
-		topic_img = "/pylon_camera_node/image_raw"
-	elif len(sys.argv) == 2:
-		rosbag = sys.argv[1]
-		topic_pcd = "/os1_cloud_node/points"
-		topic_img = "/pylon_camera_node/image_raw"
-	elif len(sys.argv) == 3:
-		rosbag = sys.argv[1]
-		topic_pcd = sys.argv[2]
-		topic_img = "/pylon_camera_node/image_raw"
-	else:
-		rosbag = sys.argv[1]
-		topic_pcd = sys.argv[2]
-		topic_img = sys.argv[3]
+
 
 
 	

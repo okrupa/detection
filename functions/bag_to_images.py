@@ -7,7 +7,6 @@
 """
 import sys
 import os
-import argparse
 
 import cv2
 
@@ -41,21 +40,3 @@ def bag_to_jpg(ros_bag,dir,topic):
 
     return
 
-if __name__ == '__main__':
-    if len(sys.argv) == 1:
-        ros_bag = "example_synced.bag"
-        topic_pcd = "/os1_cloud_node/points"
-        topic_img = "/pylon_camera_node/image_raw"
-    elif len(sys.argv) == 2:
-        ros_bag = sys.argv[1]
-        topic_pcd = "/os1_cloud_node/points"
-        topic_img = "/pylon_camera_node/image_raw"
-    elif len(sys.argv) == 3:
-        ros_bag = sys.argv[1]
-        topic_pcd = sys.argv[2]
-        topic_img = "/pylon_camera_node/image_raw"
-    else:
-        ros_bag = sys.argv[1]
-        topic_pcd = sys.argv[2]
-        topic_img = sys.argv[3]
-    bag_to_jpg(ros_bag,topic_pcd,topic_img)

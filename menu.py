@@ -1,20 +1,22 @@
-from cv2 import destroyWindow
-import visualize_pcd
-import get_data
-import choose_pcd
-from delete_files import delete_files_in_directory
-from ransac2 import ransac_algorithim
 import numpy as np
 import open3d as o3d
 import os
 import glob
 from tkinter import Tk
-from tkinter.filedialog import askopenfilename, askdirectory
-from trimming_distant_points import set_ratio, trim_points
-from detection import detection
 import shutil
 
+from functions.visualize_pcd import show_pcd_1
+from functions.get_data import get_data_from_rosbag
+from functions.choose_pcd import get_first, get_sequence
+from functions.delete_files import delete_files_in_directory
+from functions.ransac2 import ransac_algorithim
+from tkinter.filedialog import askopenfilename, askdirectory
+from functions.trimming_distant_points import set_ratio, trim_points
+from functions.detection import detection
+
+
 CONST_DIR = os.getcwd() + os.sep + "results"
+
 
 def clearConsole():
     command = 'clear'
@@ -22,18 +24,6 @@ def clearConsole():
         command = 'cls'
     os.system(command)
 
-# def save_file(pcd):
-#     root = Tk()
-#     root.withdraw()
-#     dir = askdirectory(title='Choose a directory')
-#     root.destroy()
-#     filename = input("Enter file name: ")
-#     last_chars = filename[-4:]
-#     if last_chars != '.pcd':
-#         filename = filename + '.pcd'
-#     filename = dir + '/' + filename
-#     o3d.io.write_point_cloud(filename, pcd)
-#     return filename
 
 def unpack_rosbag():
     root = Tk()
@@ -42,11 +32,12 @@ def unpack_rosbag():
     file = askopenfilename()
     root.destroy()
     if os.path.isfile(str(file)) and str(file)[-4:] == ".bag":
-        get_data.get_data_from_rosbag(file, CONST_DIR)
+        get_data_from_rosbag(file, CONST_DIR)
         return True
     else:
         print("Invalid input")
     return False
+
 
 def check_unpack_rosbag():
     pcl = CONST_DIR + os.sep + "pointclouds"
@@ -70,46 +61,17 @@ def check_unpack_rosbag():
                 print(f"Invalid input\n")
     else:
         unpack_rosbag()
+
+
 def visualize_file():
     root = Tk()
     root.withdraw()
     file = askopenfilename()
     root.destroy()
     if os.path.isfile(str(file)) and str(file)[-4:] == ".pcd":
-        visualize_pcd.show_pcd_1([str(file)])
+        show_pcd_1([str(file)])
     else:
         print("Wrong input file")
-    # file="1581791723.233274624.pcd"
-    # visualize_pcd.show_pcd_1([file])
-
-# def detect():
-#     root = Tk()
-#     root.withdraw()
-#     file = askopenfilename(title='Choose a file')
-#     root.destroy()
-#     # file = "/home/kolga/Desktop/testpzsp2/pzsp2/pcd_files/1581791678.433744128.pcd"
-#     if len(file) != 0:
-#         pcd_load = o3d.io.read_point_cloud(file)
-#         points_bef = np.asarray(pcd_load.points)
-#
-#         points_trim = trim_points(points_bef)
-#
-#         points_after = ransac_algorithim(points_trim)
-#         pcd = o3d.geometry.PointCloud()
-#         pcd.points = o3d.utility.Vector3dVector(points_after)
-#         path = CONST_DIR + os.sep + "pcd_files"
-#         if not os.path.isdir(path):
-#             os.mkdir(path)
-#         o3d.io.write_point_cloud(path, pcd)
-#
-#         folder = CONST_DIR + os.sep + "results"
-#         if not os.path.exists(folder):
-#             os.mkdir(folder)
-#         dbscan.do_dbscan(path)
-#         file_s = file.split("/")
-#         f = file_s[-1]
-#         file_dbscan = os.path.abspath(folder + os.sep + f[:-4] + "-ransac-result.pcd")
-#         visualize_pcd.show_pcd_1([file_dbscan])
 
 
 def detect_list(files):
@@ -183,7 +145,7 @@ def run_algorithm():
         if interval == -1:
             return
         else:
-            output = choose_pcd.get_sequence(interval, CONST_DIR)
+            output = get_sequence(interval, CONST_DIR)
             if output is not None:
                 print("Run ransac")
                 ransac_output = detect_list(output)
@@ -191,7 +153,6 @@ def run_algorithm():
 
                 for i in ransac_output:
                     detection(i, True)
-
             else:
                 print("Error while choosing file. Make sure that bag file unpacked correctly.")
     else:
@@ -203,7 +164,7 @@ def extract_and_run_algorithm():
 
     if unpack:
         interval = 100
-        output = choose_pcd.get_sequence(interval, CONST_DIR)
+        output = get_sequence(interval, CONST_DIR)
         if output is not None:
             print("Run ransac")
             ransac_output = detect_list(output)
@@ -221,7 +182,7 @@ def extract_and_run_algorithm():
 def extract_and_get_first_message():
     unpack = unpack_rosbag()
     if unpack:
-        output = choose_pcd.get_first(CONST_DIR)
+        output = get_first(CONST_DIR)
         if output is not None:
 
             print("Run ransac for:")
@@ -241,7 +202,7 @@ def get_first_message():
     pcl = CONST_DIR + os.sep + "pointclouds"
     img = CONST_DIR + os.sep + "images"
     if os.path.isdir(pcl) and os.path.isdir(img):
-        output = choose_pcd.get_first(CONST_DIR)
+        output = get_first(CONST_DIR)
         if output is not None:
 
             print("Run ransac for:")

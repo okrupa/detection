@@ -78,14 +78,3 @@ def detection(infile, save):
     pcd_framed, obb_coords = soif.select_objects_in_frames(save)
     print(f"\n{infile}: obstacle detect in: {obb_coords}")
 
-
-# if __name__ == "__main__":
-#     infile = "1581791678.433744128-result.pcd"
-#     eps = 0.21
-#     min_points = 15
-#
-#     od = ObjectDetection(infile, eps, min_points)
-#     pcd, labeled_points, unique_labels = od.do_dbscan()
-#     soif = SelectingObjectsInFrames(pcd, labeled_points, unique_labels)
-#     pcd_framed, obb_coords = soif.select_objects_in_frames()
-#     # print(obb_coords)                                           # frames coords - 8 points for each frame

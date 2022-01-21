@@ -2,8 +2,6 @@ import random
 import numpy as np
 from sympy import Point
 import pyransac3d as pyrsc
-import open3d as o3d
-import visualize_pcd
 
 
 def if_collinear(points):
@@ -12,6 +10,7 @@ def if_collinear(points):
     '''
     p1, p2, p3 = Point(points[0]), Point(points[1]), Point(points[2])
     return Point.is_collinear(p1, p2, p3)
+
 
 def choose_points(points):
     '''
@@ -27,6 +26,7 @@ def choose_points(points):
         collinear = if_collinear(chosen_points)
     chosen_points = np.array(chosen_points)
     return chosen_points
+
 
 def ransac_algorithim(points):
     plane = pyrsc.Plane()
@@ -53,12 +53,4 @@ def ransac_algorithim(points):
         points = np.delete(points, points_to_del, 0)
     return points
 
-
-if __name__ == "__main__":
-    pcd_load = o3d.io.read_point_cloud("1581791678.433744128.pcd")
-    points_bef = np.asarray(pcd_load.points)
-    points_after = ransac_algorithim(points_bef)
-    pcd = o3d.geometry.PointCloud()
-    pcd.points = o3d.utility.Vector3dVector(points_after)
-    o3d.io.write_point_cloud("1581791678.433744128-result.pcd", pcd)
 
